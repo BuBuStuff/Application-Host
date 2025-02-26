@@ -1,6 +1,6 @@
-import Board        from "../board/Board.js";
-import Blob         from "../Blob.js";
-import DemoData     from "./DemoData.js";
+import Board        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Blob         from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Blob.js";
+import DemoData     from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/demo/DemoData.js";
 
 
 
