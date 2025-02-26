@@ -1,5 +1,5 @@
-import Board        from "../board/Board.js";
-import Blob         from "../Blob.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Blob         from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Blob.js";
 
 
 
