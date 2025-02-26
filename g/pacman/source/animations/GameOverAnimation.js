@@ -1,8 +1,8 @@
-import Animation    from "./Animation.js";
-import Board        from "../board/Board.js";
+import Animation    from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/animations/Animation.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
 
 // Utils
-import Utils        from "../../../utils/Utils.js";
+import Utils        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/utils%20(DO%20NOT%20RUN)/Utils.js";
 
 
 
