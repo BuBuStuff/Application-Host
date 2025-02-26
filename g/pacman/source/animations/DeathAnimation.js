@@ -1,6 +1,6 @@
-import Animation    from "./Animation.js";
-import Board        from "../board/Board.js";
-import Blob         from "../Blob.js";
+import Animation    from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/Animation.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/board/Board.js";
+import Blob         from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/Blob.js";
 
 
 
