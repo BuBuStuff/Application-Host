@@ -1,9 +1,9 @@
-import Board        from "../board/Board.js";
-import Blob         from "../Blob.js";
-import Blinky       from "./Blinky.js";
-import Pinky        from "./Pinky.js";
-import Inky         from "./Inky.js";
-import Clyde        from "./Clyde.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Blob         from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Blob.js";
+import Blinky       from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Blinky.js";
+import Pinky        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Pinky.js";
+import Inky         from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Inky.js";
+import Clyde        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Clyde.js";
 
 
 
