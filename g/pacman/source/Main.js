@@ -1,13 +1,13 @@
-import Animations   from "./animations/Animations.js";
-import Board        from "./board/Board.js";
-import Blob         from "./Blob.js";
-import Demo         from "./demo/Demo.js";
-import Display      from "./Display.js";
-import Food         from "./Food.js";
-import Fruit        from "./Fruit.js";
-import Ghosts       from "./ghosts/Ghosts.js";
-import HighScores   from "./HighScores.js";
-import Score        from "./score/Score.js";
+import Animations   from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/animations/Animations.js";
+import Board        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Blob         from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Blob.js";
+import Demo         from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/demo/Demo.js";
+import Display      from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Display.js";
+import Food         from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Food.js";
+import Fruit        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Fruit.js";
+import Ghosts       from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Ghosts.js";
+import HighScores   from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/HighScores.js";
+import Score        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/score/Score.js";
 
 // Utils
 import KeyCode      from "../../utils/KeyCode.js";
