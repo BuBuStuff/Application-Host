@@ -1,4 +1,4 @@
-import Board        from "../board/Board.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/board/Board.js";
 
 
 
