@@ -1,6 +1,6 @@
-import Board        from "../board/Board.js";
-import Food         from "../Food.js";
-import DemoData     from "./DemoData.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Food         from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Food.js";
+import DemoData     from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/demo/DemoData.js";
 
 
 
