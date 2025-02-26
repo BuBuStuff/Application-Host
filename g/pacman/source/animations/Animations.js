@@ -1,13 +1,13 @@
-import DeathAnimation      from "./DeathAnimation.js";
-import EndLevelAnimation   from "./EndLevelAnimation.js";
-import FruitScoreAnimation from "./FruitScoreAnimation.js";
-import GameOverAnimation   from "./GameOverAnimation.js";
-import GhostScoreAnimation from "./GhostScoreAnimation.js";
-import NewLevelAnimation   from "./NewLevelAnimation.js";
-import PausedAnimation     from "./PausedAnimation.js";
-import ReadyAnimation      from "./ReadyAnimation.js";
-import Board               from "../board/Board.js";
-import Blob                from "../Blob.js";
+import DeathAnimation      from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/DeathAnimation.js";
+import EndLevelAnimation   from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/EndLevelAnimation.js";
+import FruitScoreAnimation from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/FruitScoreAnimation.js";
+import GameOverAnimation   from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/GameOverAnimation.js";
+import GhostScoreAnimation from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/GhostScoreAnimation.js";
+import NewLevelAnimation   from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/NewLevelAnimation.js";
+import PausedAnimation     from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/PausedAnimation.js";
+import ReadyAnimation      from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/animations/ReadyAnimation.js";
+import Board               from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/board/Board.js";
+import Blob                from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/source/Blob.js";
 
 
 
