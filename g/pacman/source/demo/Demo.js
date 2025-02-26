@@ -1,13 +1,13 @@
-import BigBlob      from "./BigBlob.js";
-import DemoBlob     from "./DemoBlob.js";
-import DemoFood     from "./DemoFood.js";
-import DemoGhost    from "./DemoGhost.js";
-import Board        from "../board/Board.js";
-import Blinky       from "../ghosts/Blinky.js";
-import Pinky        from "../ghosts/Pinky.js";
-import Inky         from "../ghosts/Inky.js";
-import Clyde        from "../ghosts/Clyde.js";
-import DemoData     from "./DemoData.js";
+import BigBlob      from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/demo/BigBlob.js";
+import DemoBlob     from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/demo/DemoBlob.js";
+import DemoFood     from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/demo/DemoFood.js";
+import DemoGhost    from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/demo/DemoGhost.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Blinky       from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Blinky.js";
+import Pinky        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Pinky.js";
+import Inky         from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Inky.js";
+import Clyde        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Clyde.js";
+import DemoData     from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/demo/DemoData.js";
 
 
 
