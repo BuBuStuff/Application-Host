@@ -3,7 +3,7 @@ import Canvas       from "https://raw.githubusercontent.com/BuBuStuff/Applicatio
 import Blob         from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Blob.js";
 
 // Utils
-import Utils        from "../../../utils/Utils.js";
+import Utils        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/utils%20(DO%20NOT%20RUN)/Utils.js";
 
 
 
