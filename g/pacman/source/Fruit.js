@@ -1,4 +1,4 @@
-import Board        from "./board/Board.js";
+import Board        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
 
 
 
