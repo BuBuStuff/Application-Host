@@ -1,6 +1,6 @@
-import Board        from "../board/Board.js";
-import Fruit        from "../Fruit.js";
-import ScoreBlob    from "./ScoreBlob.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Fruit        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Fruit.js";
+import ScoreBlob    from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/score/ScoreBlob.js";
 
 
 
