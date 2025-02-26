@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html>
+<script>
+    
+play_against_the_bot = true;
+flip_board = false;
+time_alloted_ms = 1000;</script>
+
+    <head>
+        <meta charset="utf-8">
+        <title>idk what this is</title>
+    </head>
+    <body onload="console.log('what even is ts idk why i made this, but anyway you\'re white... or TRANSPARENT??? these are images i found on google don\'t expect too much');console.log('BuBu AutoSync: This file is up to date.');" style='overflow:hidden;margin:0px;background-color:rgb(135,135,105);user-select:none'>
+
+<style>
+    
+    #evalFill{
+        transition-duration:1s;
+    }
+</style>
+
+<div id='boardDiv' style='position:fixed;left:50%;top:50%;width:600px;height:600px;transform:translate(-50%,-50%) translate(0px,60px) scale(0.7,0.7)'>
+</div>
+
+<svg id='evalBar' style='position:fixed;width:24px;height:400px;background-color:white;left:7.5%;top:60%;transform:translate(-50%,-50%);border-radius:6px'>
+    
+    <rect id='evalFill' style='position:absolute;background-color:black;' width='24' height='200'></rect>
+    
+    <text id='evalText' x='12' y='15' style='text-align:center;font-family:trebuchet ms;font-size:12px;' fill='black' text-anchor='middle'>10</text>
+    
+</svg>
+
+<textarea id='printer' style='position:fixed;background-color:rgb(230,230,230);color:black;width:100%;padding:0px;border:none' readonly='true'></textarea>
+
+Promote to:
+<select id='promType' style='margin-top:120px;width:100px;'>
+    
+    <option class='opt' value='Queen'>Queen</option>
+    <option class='opt' value='Rook'>Rook</option>
+    <option class='opt' value='Bishop'>Bishop</option>
+    <option class='opt' value='Knight'>Knight</option>
+    
+</select>
+
+<script id='source' type='text'>(function(){
+
+
+let div=document.getElementById('board'),s=600,abs=Math.abs,sign=Math.sign
+
+
+let Sq64_120=new Array(64),
+    Sq120_64=new Array(120),
+    Rank=new Array(120),
+    File=new Array(120),
+    OnBoard=new Array(120).fill(0),
+    _=(function(){
+        for(let i=0;i<120;++i)
+            Rank[i]=File[i]=Sq120_64[i]=64
+        for(let i=0;i<120;++i)
+            Sq64_120[i]=120
+        for(let f=0;f<8;++f)
+            for(let r=0;r<8;++r){
+                let ind120=21+f+(r*10),ind64=f+r*8
+                Sq64_120[ind64]=ind120
+                Sq120_64[ind120]=ind64
+                Rank[ind120]=8-r
+                File[ind120]=f
+                OnBoard[ind120]=1
+            }
+    })(),
+    Mirror64=[
+56	,	57	,	58	,	59	,	60	,	61	,	62	,	63	,
+48	,	49	,	50	,	51	,	52	,	53	,	54	,	55	,
+40	,	41	,	42	,	43	,	44	,	45	,	46	,	47	,
+32	,	33	,	34	,	35	,	36	,	37	,	38	,	39	,
+24	,	25	,	26	,	27	,	28	,	29	,	30	,	31	,
+16	,	17	,	18	,	19	,	20	,	21	,	22	,	23	,
+8	,	9	,	10	,	11	,	12	,	13	,	14	,	15	,
+0	,	1	,	2	,	3	,	4	,	5	,	6	,	7
+    ],
+    
+    NONE=0,wP=1,wN=2,wB=3,wR=4,wQ=5,wK=6,bP=7,bN=8,bB=9,bR=10,bQ=11,bK=12,OFF=13,
+    IsWhite=       [0,1,1,1,1,1,1,0,0,0,0,0,0],
+    IsBlack=       [0,0,0,0,0,0,0,1,1,1,1,1,1],
+    IsPawn=        [0,1,0,0,0,0,0,1,0,0,0,0,0],
+    IsKnight=      [0,0,1,0,0,0,0,0,1,0,0,0,0],
+    IsBishop=      [0,0,0,1,0,0,0,0,0,1,0,0,0],
+    IsRook=        [0,0,0,0,1,0,0,0,0,0,1,0,0],
+    IsQueen=       [0,0,0,0,0,1,0,0,0,0,0,1,0],
+    IsKing=        [0,0,0,0,0,0,1,0,0,0,0,0,1],
+    IsBishopQueen= [0,0,0,1,0,1,0,0,0,1,0,1,0],
+    IsRookQueen=   [0,0,0,0,1,1,0,0,0,0,1,1,0],
+    Kings=[wK,bK],
+    CastlePerm=[
+        15,15,15,15,15,15,15,15,15,15,
+        15,15,15,15,15,15,15,15,15,15,
+        15,13,15,15,15,12,15,15,14,15,
+        15,15,15,15,15,15,15,15,15,15,
+        15,15,15,15,15,15,15,15,15,15,
+        15,15,15,15,15,15,15,15,15,15,
+        15,15,15,15,15,15,15,15,15,15,
+        15,15,15,15,15,15,15,15,15,15,
+        15,15,15,15,15,15,15,15,15,15,
+        15, 7,15,15,15, 3,15,15,11,15,
+        15,15,15,15,15,15,15,15,15,15,
+        15,15,15,15,15,15,15,15,15,15
+    ],
+    
+    MAX_GAME_MOVES=1024,
+    MAX_POSITION_MOVES=256,
+    MAX_DEPTH=64,
+    PV_ENTRIES=10000,
+    
+    BOARD=new Array(120),
+    CASTLING=0b1111,
+    MOVE_LIST=new Array(MAX_DEPTH*MAX_POSITION_MOVES),
+    MOVE_SCORES=new Array(MAX_DEPTH*MAX_POSITION_MOVES),
+    MOVE_LIST_START=new Array(MAX_DEPTH).fill(0),
+    PIECE_NUM=new Array(13),
+    PIECE_LIST=new Array(14*10),
+    PieceIndex=(pce,pceNum)=>pce*10+pceNum,
+    MATERIAL=new Array(2),
+    PLY=0,
+    gPLY=0,
+    SIDE=1,
+    EN_PAS=9,
+    POS_KEY=0,
+    HISTORY=[],
+    
+    PV_LINE=[],
+    SEARCH_HISTORY=new Array(14*120),
+    SEARCH_KILLERS=new Array(3*MAX_DEPTH),
+    TT={},
+    MOVE_TYPE_SEPARATOR=1000000,
+    
+    MOVE=(from,to,cap,prom,flag)=>from|(to<<7)|(cap<<14)|(prom<<20)|flag,
+    FROM=(m)=>m&0x7F,
+    TO=(m)=>(m>>7)&0x7F,
+    CAP=(m)=>(m>>14)&0xF,
+    PROM=(m)=>(m>>20)&0xF,
+    FLAG_EP=0x40000,
+    FLAG_PS=0x80000,
+    FLAG_CAS=0x1000000,
+    FLAG_CAP=0x7C000,
+    FLAG_PROM=0xF00000,
+    KnDir=[-8,-19,-21,-12,8,19,21,12],
+    RkDir=[-1,-10,1,10],
+    BiDir=[-9,-11,11,9],
+    KiDir=[-1,-10,1,10,-9,-11,11,9],
+    DirNum=[0,0,8,4,4,8,8,0,8,4,4,8,8],
+    PieceDir=[0,0,KnDir,BiDir,RkDir,KiDir,KiDir,0,KnDir,BiDir,RkDir,KiDir,KiDir],
+    LoopSlidePiece=[wB,wR,wQ,0,bB,bR,bQ,0],
+    LoopNonSlidePiece=[wN,wK,0,bN,bK,0],
+    LoopSlideIndex=[4,0],
+    LoopNonSlideIndex=[3,0],
+    VictimScore=[0,100,200,300,400,500,600,100,200,300,400,500, 600],
+    MvvLvaScores=new Array(14*14),
+    ____=(function(){
+        for(let A=wP;A<=bK;++A)
+            for(let V=wP;V<=bK;++V)
+                MvvLvaScores[V*14+A]=VictimScore[V]+6-(VictimScore[A]*0.1)
+        
+    })(),
+    PawnRanksWhite=new Array(10),
+    PawnRanksBlack=new Array(10),
+    PawnColorsWhite=new Array(2),
+    PawnColorsBlack=new Array(2),
+    
+    Rand32=()=>(Math.floor((Math.random()*255)+1)<<23)|(Math.floor((Math.random()*255)+1)<<16)|(Math.floor((Math.random()*255)+1)<<8)|Math.floor((Math.random()*255)+1),
+    PieceKeys=new Array(14*120),
+    CastleKeys=new Array(16),
+    SideKey=Rand32(),
+    __=(function(){
+        for(let i=13*120;i--;)
+            PieceKeys[i]=Rand32()
+        for(let i=0;i<16;++i)
+            CastleKeys[i]=Rand32()
+    })(),
+    HashPiece=(pce,sq)=>POS_KEY^=PieceKeys[pce*120+sq],
+    HashCastling=()=>POS_KEY^=CastleKeys[CASTLING],
+    HashSide=()=>POS_KEY^=SideKey,
+    HashEP=()=>POS_KEY^=PieceKeys[EN_PAS],
+    
+    AddQuietMove=(move)=>{
+        MOVE_LIST[MOVE_LIST_START[PLY+1]]=move
+        
+    	if(SEARCH_KILLERS[PLY]===move)
+    		MOVE_SCORES[MOVE_LIST_START[PLY+1]]=TT[POS_KEY]&&TT[POS_KEY].bestMove===move?MOVE_TYPE_SEPARATOR*2:MOVE_TYPE_SEPARATOR-1
+    	else if(SEARCH_KILLERS[MAX_DEPTH+PLY]===move)
+    		MOVE_SCORES[MOVE_LIST_START[PLY+1]]=TT[POS_KEY]&&TT[POS_KEY].bestMove===move?MOVE_TYPE_SEPARATOR*2:MOVE_TYPE_SEPARATOR-2
+    	else
+    		MOVE_SCORES[MOVE_LIST_START[PLY+1]]=TT[POS_KEY]&&TT[POS_KEY].bestMove===move?MOVE_TYPE_SEPARATOR*2:SEARCH_HISTORY[ BOARD[FROM(move)]*120+TO(move)]
+    	
+    	MOVE_LIST_START[PLY+1]++
+    },
+    AddCaptureMove=(move)=>{
+        MOVE_LIST[MOVE_LIST_START[PLY+1]]=move
+        
+		MOVE_SCORES[MOVE_LIST_START[PLY+1]]=TT[POS_KEY]&&TT[POS_KEY].bestMove===move?MOVE_TYPE_SEPARATOR*2:MvvLvaScores[CAP(move)*14+BOARD[FROM(move)]]
+		
+		MOVE_LIST_START[PLY+1]++
+    },
+    AddEPMove=(move)=>{
+        MOVE_LIST[MOVE_LIST_START[PLY+1]]=move
+		MOVE_SCORES[MOVE_LIST_START[PLY+1]++]=TT[POS_KEY]&&TT[POS_KEY].bestMove===move?MOVE_TYPE_SEPARATOR*2:105+MOVE_TYPE_SEPARATOR
+    },
+    AddWhitePawnQuietMove=(from,to)=>{
+    	if(Rank[from]===7){
+    		AddQuietMove(MOVE(from,to,0,wQ))
+    		AddQuietMove(MOVE(from,to,0,wR))
+    		AddQuietMove(MOVE(from,to,0,wB))
+    		AddQuietMove(MOVE(from,to,0,wN))
+    	}else
+    		AddQuietMove(MOVE(from,to))
+    }
+    AddWhitePawnCaptureMove=(from,to,cap)=>{
+    	if(Rank[from]===7){
+    		AddCaptureMove(MOVE(from,to,cap,wQ))
+    		AddCaptureMove(MOVE(from,to,cap,wR))
+    		AddCaptureMove(MOVE(from,to,cap,wB))
+    		AddCaptureMove(MOVE(from,to,cap,wN))
+    	}else
+    		AddCaptureMove(MOVE(from,to,cap))
+    }
+    AddBlackPawnQuietMove=(from,to)=>{
+    	if(Rank[from]===2){
+    		AddQuietMove(MOVE(from,to,0,bQ))
+    		AddQuietMove(MOVE(from,to,0,bR))
+    		AddQuietMove(MOVE(from,to,0,bB))
+    		AddQuietMove(MOVE(from,to,0,bN))
+    	}else
+    		AddQuietMove(MOVE(from,to))
+    }
+    AddBlackPawnCaptureMove=(from,to,cap)=>{
+    	if(Rank[from]===2){
+    		AddCaptureMove(MOVE(from,to,cap,bQ))
+    		AddCaptureMove(MOVE(from,to,cap,bR))
+    		AddCaptureMove(MOVE(from,to,cap,bB))
+    		AddCaptureMove(MOVE(from,to,cap,bN))
+    	}else
+    		AddCaptureMove(MOVE(from,to,cap))
+    },
+    
+    USER_PROMOTION_TYPE=IsQueen,
+    INF=50000,
+    MATE=49000,
+    PIECE_VALUES=[0,100,350,370,500,950,0,100,350,370,500,950,0],
+    ISOLATED_PAWN=-35,
+    PASSED_PAWN_ON_RANK=[0,0,15,25,40,75,100,125],
+    DOUBLED_PAWNS=-50,
+    SEMI_OPEN_FILE_ROOK=20,
+    OPEN_FILE_ROOK=50,
+    SEMI_OPEN_FILE_QUEEN=10,
+    OPEN_FILE_QUEEN=25,
+    BISHOP_PAIR=40,
+    BISHOP_VALUE_PER_BLOCKING_PAWN=-5,
+    CAN_CASTLE_A_DIR=30,
+    KING_TRAPS_ROOK=-50,
+    SELF_BLOCKED_CENTER_PAWN=-40,
+    
+    PST_EARLY=[
+        [-6,-6,-6,-6,-6,-6,-6,-6,3,2,2,-27,-47,10,6,0,5,7,9,21,21,9,7,5,11,14,30,45,45,17,14,11,16,20,40,53,53,24,20,16,22,27,42,61,61,32,27,22,40,43,46,49,49,46,43,40,43,47,50,54,54,50,47,43,],
+        [-48,-29,-14,-6,-6,-14,-29,-48,-29,-6,13,24,24,13,-6,-29,-14,13,36,45,45,36,13,-14,-6,24,45,45,45,45,24,-6,-6,24,45,45,45,45,24,-6,-14,13,36,45,45,36,13,-14,-29,-6,13,24,24,13,-6,-29,-48,-29,-14,-6,-6,-14,-29,-48,],
+        [0,0,-20,0,0,-20,0,0,0,40,0,20,20,0,40,0,0,0,20,30,30,20,0,0,0,20,30,40,40,30,20,0,0,20,30,40,40,30,20,0,0,0,20,30,30,20,0,0,0,0,0,20,20,0,0,0,0,0,0,0,0,0,0,0,],
+        [0,0,0,40,40,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,0,0,0,0,0,0,0,0,],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+        [36,45,33,2,2,13,45,36,16,9,1,-15,-15,1,9,16,-25,-26,-27,-28,-28,-27,-26,-25,-49,-45,-42,-38,-38,-42,-45,-49,-66,-60,-53,-46,-46,-53,-60,-66,-78,-69,-61,-52,-52,-61,-69,-78,-85,-75,-66,-56,-56,-66,-75,-85,-88,-78,-68,-58,-58,-68,-78,-88,]
+    ],
+    PST_END=[
+        [0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,19,19,19,19,19,19,19,19,63,63,63,63,63,63,63,63,150,150,150,150,150,150,150,150,293,293,293,293,293,293,293,293,506,506,506,506,506,506,506,506,804,804,804,804,804,804,804,804,],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [2,9,14,17,17,14,9,2,9,17,25,29,29,25,17,9,14,25,35,43,43,35,25,14,17,29,43,58,58,43,29,17,17,29,43,58,58,43,29,17,14,25,35,43,43,35,25,14,9,17,25,29,29,25,17,9,2,9,14,17,17,14,9,2,],
+        [-52,-36,-24,-18,-18,-24,-36,-52,-36,-18,-3,6,6,-3,-18,-36,-24,-3,16,29,29,16,-3,-24,-18,6,29,50,50,29,6,-18,-18,6,29,50,50,29,6,-18,-24,-3,16,29,29,16,-3,-24,-36,-18,-3,6,6,-3,-18,-36,-52,-36,-24,-18,-18,-24,-36,-52,]
+    ],
+    
+    
+    seeValues=[0,1,3,3,5,9,10,1,3,3,5,9,10],
+    seeDist=new Array(4),
+    seeWhite=new Array(32),
+    seeBlack=new Array(32),
+    SEE=(move)=>{
+        
+        let seeW=0,seeB=0,see=0,sq=TO(move),side=SIDE
+        
+        if(BOARD[sq+11]===wP)seeWhite[seeW++]=1
+        if(BOARD[sq+9]===wP)seeWhite[seeW++]=1
+        
+        if(BOARD[sq-11]===bP)seeBlack[seeB++]=1
+        if(BOARD[sq-9]===bP)seeBlack[seeB++]=1
+        
+        for(let i=0;i<8;++i){
+            let pce=BOARD[sq+KnDir[i]]
+            if(pce!==OFF&&IsKnight[pce]){
+                if(IsWhite[pce])
+                    seeWhite[seeW++]=3
+                else
+                    seeBlack[seeB++]=3
+            }
+        }
+        seeDist[0]=1
+        seeDist[1]=1
+        seeDist[2]=1
+        seeDist[3]=1
+        while(seeDist[0]||seeDist[1]||seeDist[2]||seeDist[3]){
+            let wBs=0,bBs=0,wQs=0,bQs=0
+            for(let j=0;j<4;++j){
+                
+                if(!seeDist[j])continue
+                
+                let dir=BiDir[j],
+                    t_sq=sq+dir*seeDist[j]
+                
+                while(OnBoard[t_sq]){
+                    seeDist[j]++
+                    let pce=BOARD[t_sq]
+                    if(pce){
+                        if(IsBishop[pce]){
+                            if(IsWhite[pce])
+                                wBs++
+                            else
+                                bBs++
+                        }else if(IsQueen[pce]){
+                            if(IsWhite[pce])
+                                wQs++
+                            else
+                                bQs++
+                        }else
+                            seeDist[j]=0
+                        
+                        break
+                    }
+                    t_sq=sq+dir*seeDist[j]
+                }
+                if(!OnBoard[t_sq])seeDist[j]=0
+            }
+            
+            for(let i=0;i<wBs;++i)seeWhite[seeW++]=3
+            for(let i=0;i<bBs;++i)seeBlack[seeB++]=3
+            for(let i=0;i<wQs;++i)seeWhite[seeW++]=9
+            for(let i=0;i<bQs;++i)seeBlack[seeB++]=9
+        }
+        seeDist[0]=1
+        seeDist[1]=1
+        seeDist[2]=1
+        seeDist[3]=1
+        while(seeDist[0]||seeDist[1]||seeDist[2]||seeDist[3]){
+            let wRs=0,bRs=0,wQs=0,bQs=0
+            for(let j=0;j<4;++j){
+                
+                if(!seeDist[j])continue
+                
+                let dir=RkDir[j],
+                    t_sq=sq+dir*seeDist[j]
+                
+                while(OnBoard[t_sq]){
+                    seeDist[j]++
+                    let pce=BOARD[t_sq]
+                    if(pce){
+                        if(IsRook[pce]){
+                            if(IsWhite[pce])
+                                wRs++
+                            else
+                                bRs++
+                        }else if(IsQueen[pce]){
+                            if(IsWhite[pce])
+                                wQs++
+                            else
+                                bQs++
+                        }else
+                            seeDist[j]=0
+                        
+                        break
+                    }
+                    t_sq=sq+dir*seeDist[j]
+                }
+                if(!OnBoard[t_sq])seeDist[j]=0
+            }
+            
+            for(let i=0;i<wRs;++i)seeWhite[seeW++]=5
+            for(let i=0;i<bRs;++i)seeBlack[seeB++]=5
+            for(let i=0;i<wQs;++i)seeWhite[seeW++]=9
+            for(let i=0;i<bQs;++i)seeBlack[seeB++]=9
+        }
+        
+        let iw=0,ib=0,ogSide=side?1:-1,lastCap=seeValues[CAP(move)]
+        
+        while(iw<40){
+            
+            if(side){
+                if(iw>=seeW)return see*ogSide
+                see+=lastCap
+                lastCap=seeWhite[iw++]
+            }else{
+                if(ib>=seeB)return see*ogSide
+                see-=lastCap
+                lastCap=seeBlack[ib++]
+            }
+            
+            side^=1
+        }
+    },
+    SEE_sign=(move)=>{
+        
+        if(seeValues[CAP(move)]>=seeValues[BOARD[FROM(move)]])
+            return 1
+        
+        return SEE(move)
+    },
+    MoveChecksSq=(move,sq)=>{
+        
+        let pce=BOARD[FROM(move)],to=TO(move)
+        
+        if(IsPawn[pce]){
+            if(IsWhite[pce])
+                return to-9===sq||to-11===sq
+            else
+                return to+9===sq||to+11===sq
+        }else if(IsKnight[pce]){
+            let del=to-sq
+            return del===-8||del===-19||del===-21||del===-12||del===8||del===19||del===21||del===12
+            
+        }else if(IsBishopQueen[pce]){
+            let sx=File[sq],sy=Rank[sq],tx=File[to],ty=Rank[to],
+                dx=sx-tx,dy=sy-ty
+            if(abs(dx)===abs(dy)){
+                let dir=dx<0?(dy>0?-11:9):(dy>0?-9:11)
+                for(let i=1,dist=abs(dx);i<dist;++i)
+                    if(BOARD[to+dir*i])return 0
+                return 1
+            }
+        }
+        if(IsRookQueen[pce]){
+            let sx=File[sq],sy=Rank[sq],tx=File[to],ty=Rank[to],
+                dx=sx-tx,dy=sy-ty
+            if(!dx||!dy){
+                let dir=dy?(dy>0?-10:10):(dx>0?1:-1)
+                for(let i=1,dist=Math.max(abs(dx),abs(dy));i<dist;++i)
+                    if(BOARD[to+dir*i])return 0
+                return 1
+            }
+        }
+        
+    }
+    
+function ParseFEN(fen){
+    
+    for(let i=0;i<120;++i)BOARD[i]=OnBoard[i]?0:OFF
+    
+    MATERIAL[0]=0
+	MATERIAL[1]=0
+	
+	for(let i=0;i<13;++i)PIECE_NUM[i]=0
+	for(let i=0;i<14*10;++i)PIECE_LIST[i]=0
+	
+    fen=fen.split(' ')
+    let ranks=fen[0].split('/')
+    for(let i in ranks){
+        let file=0
+        for(let j in ranks[i]){
+            let p=ranks[i][j]
+            if((p-0)+1)
+                file+=p-0
+            else {
+                BOARD[Sq64_120[64-((7-i)*8-file+8)]]={'p':7,'n':8,'b':9,'r':10,'q':11,'k':12,'P':1,'N':2,'B':3,'R':4,'Q':5,'K':6}[p]
+                file++
+            }
+        }
+    }
+    
+    SIDE={w:1,b:0}[fen[1]]
+    CASTLING=0
+    CASTLING|=fen[2].indexOf('k')>-1?0b0001:0
+    CASTLING|=fen[2].indexOf('q')>-1?0b0010:0
+    CASTLING|=fen[2].indexOf('K')>-1?0b0100:0
+    CASTLING|=fen[2].indexOf('Q')>-1?0b1000:0
+    EP=fen[3]==='-'?0:((8-fen[3][1])*8+'abcdefgh'.indexOf(fen[3][0]))
+    
+    POS_KEY=GeneratePosKey()
+    UpdateListsMaterial()
+    
+    HISTORY=[]
+    for(let i=0;i<MAX_GAME_MOVES;++i){
+		HISTORY.push({
+			move:0,
+			CASTLING:0,
+			EN_PAS:0,
+			POS_KEY:0
+		})
+	}
+}
+
+function GenerateBoardMesh(){
+    let html='',cc=''
+    CheckBoard()
+    for(let ind=0;ind<64;++ind){
+        let x=(ind)%8,y=((ind)>>3),c=(x+y)%2
+        
+        if(flip_board){
+            x=7-x
+            y=7-y
+        }
+        
+        x*=s*0.125
+        y*=s*0.125
+        
+        col=c?[120,120,120]:[255,255,255]
+        let piece=' ♙♘♗♖♕♔♟♞♝♜♛♚'[BOARD[Sq64_120[ind]]]
+        cc+=BOARD[Sq64_120[ind]]+','
+       
+        
+        html+="<div id='square_"+ind+"' style='font-size:60px;color:black;position:absolute;left:"+(x|0)+"px;top:"+(y|0)+"px;width:"+((s*0.125+1)|0)+"px;height:"+((s*0.125+1)|0)+"px;background-color:rgb("+col[0]+','+col[1]+','+col[2]+");text-align:center'><div style='margin-top:-5px'>"+piece+"</div><div id='moveTo_"+ind+"'style='display:none;position:absolute;left:50%;top:50%;width:100%;height:100%;background-color:rgb(0,200,0,0.4);transform:translate(-50%,-50%);cursor:pointer'></div></div>"
+    }
+    boardDiv.innerHTML=html
+    
+}
+function RunUserMoves(){
+    GenerateMoves()
+    let moves=MOVE_LIST.slice(MOVE_LIST_START[PLY],MOVE_LIST_START[PLY+1])
+    for(let i=0;i<64;i++)window['square_'+i].onclick=(e)=>{
+        for(let j=0;j<64;j++){
+            window['square_'+j].style.color='black'
+            window['moveTo_'+j].style.display='none'
+        }
+        window['square_'+i].style.color='rgb(0,0,0,0.5)'
+        for(let j=0;j<moves.length;j++){
+            
+            let from=Sq120_64[FROM(moves[j])],
+                to=Sq120_64[TO(moves[j])],
+                prom=PROM(moves[j])
+            
+            if(!USER_PROMOTION_TYPE[prom]&&prom)continue
+            
+            if(from===i){
+                
+                if(!MakeMove(moves[j])){
+                    continue
+                }
+                TakeMove()
+                
+                window['moveTo_'+to].style.display='block'
+                window['moveTo_'+to].onclick=()=>{
+                    
+                    window.setTimeout(()=>window['square_'+to].style.color='black',0)
+                    MakeMove(moves[j])
+                    let from=Sq120_64[FROM(moves[j])],to=Sq120_64[TO(moves[j])]
+                    console.log('move '+'abcdefgh'[from&7]+(8-(from>>3))+'abcdefgh'[to&7]+(8-(to>>3)))
+                    
+                    document.onkeydown=(e)=>{
+                        if(e.key==='l'){
+                            
+                            if(play_against_the_bot=!play_against_the_bot)evalBar.style.display='none'
+                            return
+                        }
+                        if(e.key!=='u')return
+                        TakeMove()
+                        RunTurn()
+                        console.log('undo move')
+                    }
+                    RunTurn()
+                }
+            }
+        }
+    }
+}
+function SetArrow(move){
+    let from=Sq120_64[FROM(move)],to=Sq120_64[TO(move)],p1=[from&7,from>>3],p2=[to&7,to>>3]
+    
+    if(flip_board){
+        p1[0]=7-p1[0]
+        p1[1]=7-p1[1]
+        p2[0]=7-p2[0]
+        p2[1]=7-p2[1]
+    }
+    
+    p1[0]=p1[0]*s*0.125+s*0.125*0.5
+    p1[1]=p1[1]*s*0.125+s*0.125*0.5
+    p2[0]=p2[0]*s*0.125+s*0.125*0.5
+    p2[1]=p2[1]*s*0.125+s*0.125*0.5
+    let sub=[p2[0]-p1[0],p2[1]-p1[1]],m=1/Math.sqrt(sub[0]*sub[0]+sub[1]*sub[1])
+    sub[0]*=m
+    sub[1]*=m
+    
+    let prom
+    
+    if(PROM(move)){
+        prom=' ♙♘♗♖♕♔♟♞♝♜♛♚'[PROM(move)]
+    }
+    
+    boardDiv.innerHTML+=`<svg style='width:100%;height:100%;position:absolute;z-index:2;pointer-events:none'><path id='arrowPath' stroke='rgb(255,100,0,0.5)' stroke-width='20' d='${'M'+p1+' '+[p2[0]-sub[0]*50,p2[1]-sub[1]*50]}'></path><path id='arrowTip' transform='${'translate('+p2+') rotate('+(Math.atan2(sub[0],sub[1])*-180/Math.PI)+')'}' fill='rgb(255,100,0,0.5)' d='M0 0L-30 -50 L30 -50z'></path>${prom?"<text x='"+p2[0]+"'' y='"+p2[1]+"' transform='translate(0,15)' text-anchor='middle' fill='rgb(0,0,0)' style='font-size:50px'>"+prom+"</text>":''}</svg>`
+}
+function SetEvalBar(e){
+    let num=e*0.01*(SIDE?1:-1),s=sign(num),anum=abs(num)
+    evalText.textContent=abs(e)>MATE?'M'+((((INF-abs(e))*0.5)+1)|0):anum>=10?anum|0:anum.toFixed(1)
+    evalText.setAttribute('y',s>0?393:15)
+    evalText.setAttribute('fill',s>0?'black':'white')
+    evalFill.setAttribute('height',(-num*20)+200)
+}
+function PrintMove(move){
+    let from=Sq120_64[FROM(move)],to=Sq120_64[TO(move)],cap=CAP(move),p=BOARD[FROM(move)],
+        str=(IsPawn[p]?'':'..NBRQK.NBRQK'[p])+(cap?(IsPawn[p]?'abcdefgh'[from&7]:'')+'x':'')+'abcdefgh'[to&7]+(8-(to>>3))+(PROM(move)?'='+'..NBRQK.NBRQK'[PROM(move)]:'')
+    
+    if(FLAG_CAS&move)str='O-O'+(to-from<0?'-O':'')
+    
+    return str
+}
+
+function UpdateListsMaterial(){	
+	
+	for(let i=0;i<120;++i)BOARD[i]=OnBoard[i]?BOARD[i]:OFF
+    
+    MATERIAL[0]=0
+	MATERIAL[1]=0
+	
+	for(let i=0;i<13;++i)PIECE_NUM[i]=0
+	for(let i=0;i<14*10;++i)PIECE_LIST[i]=0
+	
+	for(let i=0;i<120;++i){
+		let p=BOARD[i]
+		if(p!==OFF&&p!==NONE){
+            
+			let col=IsWhite[p]		
+			MATERIAL[col]+=PIECE_VALUES[p]
+			
+			PIECE_LIST[PieceIndex(p,PIECE_NUM[p])]=i
+			PIECE_NUM[p]++
+		}
+	}
+}
+function SqAttacked(sq,side){
+    
+    if(side){
+        if(BOARD[sq+11]===wP||BOARD[sq+9]===wP)return 1
+    }else{
+        if(BOARD[sq-11]===bP||BOARD[sq-9]===bP)return 1
+    }
+	for(let i=0;i<8;++i){
+		let pce=BOARD[sq+KnDir[i]]
+		if(pce!==OFF&&IsKnight[pce]&&IsWhite[pce]===side)
+			return 1
+	}
+	
+	for(let i=0;i<4;++i){
+		let dir=RkDir[i],
+		    t_sq=sq+dir,
+		    pce=BOARD[t_sq]
+		while(OnBoard[t_sq]){
+			if(pce){
+				if(IsRookQueen[pce]&&IsWhite[pce]===side)
+					return 1
+				break
+			}
+			t_sq+=dir
+			pce=BOARD[t_sq]
+		}
+	}
+	
+	for(let i=0;i<4;++i){
+		let dir=BiDir[i],
+		    t_sq=sq+dir,
+		    pce=BOARD[t_sq]
+		while(OnBoard[t_sq]){
+			if(pce){
+				if(IsBishopQueen[pce]&&IsWhite[pce]===side)
+					return 1
+				break
+			}
+			t_sq+=dir
+			pce=BOARD[t_sq]
+		}
+	}
+	
+	for(let i=0;i<8;++i){
+		let pce=BOARD[sq+KiDir[i]]
+		if(pce!==OFF&&IsKing[pce]&&IsWhite[pce]===side)
+			return 1
+	}
+	
+	return 0
+}
+function GenerateMoves(){
+    MOVE_LIST_START[PLY+1]=MOVE_LIST_START[PLY]
+    if(SIDE){
+		for(let pceNum=0,L=PIECE_NUM[wP];pceNum<L;++pceNum) {
+			let sq=PIECE_LIST[PieceIndex(wP,pceNum)]
+			if(!BOARD[sq-10]){
+				if(!BOARD[sq-20]&&Rank[sq]===2)
+                    AddQuietMove(MOVE(sq,sq-20,0,0,FLAG_PS))
+				AddWhitePawnQuietMove(sq,sq-10)
+			}
+			if(OnBoard[sq-9]&&IsBlack[BOARD[sq-9]])
+				AddWhitePawnCaptureMove(sq,sq-9,BOARD[sq-9])
+			if(OnBoard[sq-11]&&IsBlack[BOARD[sq-11]])
+				AddWhitePawnCaptureMove(sq,sq-11,BOARD[sq-11])
+			if(Rank[sq]===5){
+                if(File[sq]===EN_PAS-1)
+                    AddEPMove(MOVE(sq,sq-9,0,0,FLAG_EP))
+                if(File[sq]===EN_PAS+1)
+                    AddEPMove(MOVE(sq,sq-11,0,0,FLAG_EP))
+            }
+		}
+		
+		if((CASTLING&8)&&!BOARD[94]&&!BOARD[93]&&!BOARD[92]&&!SqAttacked(95,0)&&!SqAttacked(94,0))
+            AddQuietMove(MOVE(95,93,0,0,FLAG_CAS))
+		    
+		if((CASTLING&4)&&!BOARD[96]&&!BOARD[97]&&!SqAttacked(95,0)&&!SqAttacked(96,0))
+            AddQuietMove(MOVE(95,97,0,0,FLAG_CAS))
+		
+    }else{
+        for(let pceNum=0,L=PIECE_NUM[bP];pceNum<L;++pceNum) {
+			let sq=PIECE_LIST[PieceIndex(bP,pceNum)]
+			if(!BOARD[sq+10]){
+				if(!BOARD[sq+20]&&Rank[sq]===7)
+                    AddQuietMove(MOVE(sq,sq+20,0,0,FLAG_PS))
+				AddBlackPawnQuietMove(sq,sq+10)
+			}
+			if(OnBoard[sq+9]&&IsWhite[BOARD[sq+9]])
+				AddBlackPawnCaptureMove(sq,sq+9,BOARD[sq+9])
+			if(OnBoard[sq+11]&&IsWhite[BOARD[sq+11]])
+				AddBlackPawnCaptureMove(sq,sq+11,BOARD[sq+11])
+			if(Rank[sq]===4){
+                if(File[sq]===EN_PAS+1)
+                    AddEPMove(MOVE(sq,sq+9,0,0,FLAG_EP))
+                if(File[sq]===EN_PAS-1)
+                    AddEPMove(MOVE(sq,sq+11,0,0,FLAG_EP))
+			}
+		}
+		
+		if((CASTLING&2)&&!BOARD[24]&&!BOARD[23]&&!BOARD[22]&&!SqAttacked(25,1)&&!SqAttacked(24,1))
+            AddQuietMove(MOVE(25,23,0,0,FLAG_CAS))
+		    
+		if((CASTLING&1)&&!BOARD[26]&&!BOARD[27]&&!SqAttacked(25,1)&&!SqAttacked(26,1))
+            AddQuietMove(MOVE(25,27,0,0,FLAG_CAS))
+    }
+    let pceIndex=LoopSlideIndex[SIDE],
+        pce=LoopSlidePiece[pceIndex++]
+	while(pce){
+		for(let pceNum=0,L=PIECE_NUM[pce];pceNum<L;++pceNum){
+			let sq=PIECE_LIST[PieceIndex(pce,pceNum)]
+			
+			for(let i=0,_L=DirNum[pce];i<_L;++i){
+				let dir=PieceDir[pce][i],t_sq=sq+dir
+				
+				while(OnBoard[t_sq]){				
+					if(BOARD[t_sq]){
+						if(IsBlack[BOARD[t_sq]]===SIDE)
+							AddCaptureMove(MOVE(sq,t_sq,BOARD[t_sq]))
+						break
+					}	
+					AddQuietMove(MOVE(sq,t_sq))
+					t_sq+=dir
+				}
+			}
+		}
+		pce=LoopSlidePiece[pceIndex++]
+	}
+	pceIndex=LoopNonSlideIndex[SIDE]
+    pce=LoopNonSlidePiece[pceIndex++]
+	while(pce){
+		for(let pceNum=0,L=PIECE_NUM[pce];pceNum<L;++pceNum){
+			let sq=PIECE_LIST[PieceIndex(pce,pceNum)]
+			
+			for(let i=0,_L=DirNum[pce];i<_L;++i){
+				let dir=PieceDir[pce][i],t_sq=sq+dir
+				if(!OnBoard[t_sq])continue
+				if(BOARD[t_sq]){
+					if(IsBlack[BOARD[t_sq]]===SIDE)
+						AddCaptureMove(MOVE(sq,t_sq,BOARD[t_sq]))
+					continue
+				}	
+				AddQuietMove(MOVE(sq,t_sq))
+			}
+		}		
+		pce=LoopNonSlidePiece[pceIndex++]
+	}
+}
+function GenerateCaptures(){
+    MOVE_LIST_START[PLY+1]=MOVE_LIST_START[PLY]
+    if(SIDE){
+		for(let pceNum=0,L=PIECE_NUM[wP];pceNum<L;++pceNum) {
+			let sq=PIECE_LIST[PieceIndex(wP,pceNum)]
+			if(OnBoard[sq-9]&&IsBlack[BOARD[sq-9]])
+				AddWhitePawnCaptureMove(sq,sq-9,BOARD[sq-9])
+			if(OnBoard[sq-11]&&IsBlack[BOARD[sq-11]])
+				AddWhitePawnCaptureMove(sq,sq-11,BOARD[sq-11])
+			if(Rank[sq]===5){
+                if(File[sq]===EN_PAS-1)
+                    AddEPMove(MOVE(sq,sq-9,0,0,FLAG_EP))
+                if(File[sq]===EN_PAS+1)
+                    AddEPMove(MOVE(sq,sq-11,0,0,FLAG_EP))
+			}
+		}
+    }else{
+        for(let pceNum=0,L=PIECE_NUM[bP];pceNum<L;++pceNum) {
+			let sq=PIECE_LIST[PieceIndex(bP,pceNum)]
+			if(OnBoard[sq+9]&&IsWhite[BOARD[sq+9]])
+				AddBlackPawnCaptureMove(sq,sq+9,BOARD[sq+9])
+			if(OnBoard[sq+11]&&IsWhite[BOARD[sq+11]])
+				AddBlackPawnCaptureMove(sq,sq+11,BOARD[sq+11])
+			if(Rank[sq]===4){
+                if(File[sq]===EN_PAS+1)
+                    AddEPMove(MOVE(sq,sq+9,0,0,FLAG_EP))
+                if(File[sq]===EN_PAS-1)
+                	AddEPMove(MOVE(sq,sq+11,0,0,FLAG_EP))
+			}
+		}
+    }
+    let pceIndex=LoopSlideIndex[SIDE],
+        pce=LoopSlidePiece[pceIndex++]
+	while(pce){
+		for(let pceNum=0,L=PIECE_NUM[pce];pceNum<L;++pceNum){
+			let sq=PIECE_LIST[PieceIndex(pce,pceNum)]
+			
+			for(let i=0,_L=DirNum[pce];i<_L;++i){
+				let dir=PieceDir[pce][i],t_sq=sq+dir
+				
+				while(OnBoard[t_sq]){				
+					if(BOARD[t_sq]){
+						if(IsBlack[BOARD[t_sq]]===SIDE)
+							AddCaptureMove(MOVE(sq,t_sq,BOARD[t_sq]))
+						break
+					}	
+					t_sq+=dir
+				}
+			}
+		}
+		pce=LoopSlidePiece[pceIndex++]
+	}
+	pceIndex=LoopNonSlideIndex[SIDE]
+    pce=LoopNonSlidePiece[pceIndex++]
+	while(pce){
+		for(let pceNum=0,L=PIECE_NUM[pce];pceNum<L;++pceNum){
+			let sq=PIECE_LIST[PieceIndex(pce,pceNum)]
+			
+			for(let i=0,_L=DirNum[pce];i<_L;++i){
+				let dir=PieceDir[pce][i],t_sq=sq+dir
+				if(!OnBoard[t_sq])continue
+				if(BOARD[t_sq]){
+					if(IsBlack[BOARD[t_sq]]===SIDE)
+						AddCaptureMove(MOVE(sq,t_sq,BOARD[t_sq]))
+					continue
+				}
+			}
+		}		
+		pce=LoopNonSlidePiece[pceIndex++]
+	}
+}
+function ClearPiece(sq){	
+	
+    let pce=BOARD[sq],tPce=-1
+	BOARD[sq]=0
+    MATERIAL[IsWhite[pce]]-=PIECE_VALUES[pce]
+	
+	for(let i=0,L=PIECE_NUM[pce];i<L;++i){
+		if(PIECE_LIST[PieceIndex(pce,i)]===sq){
+        	tPce=i
+			break
+		}
+	}
+	
+	PIECE_NUM[pce]--
+	PIECE_LIST[PieceIndex(pce,tPce)]=PIECE_LIST[PieceIndex(pce,PIECE_NUM[pce])]
+}
+function AddPiece(sq,pce){   
+	
+	BOARD[sq]=pce
+	MATERIAL[IsWhite[pce]]+=PIECE_VALUES[pce]
+	PIECE_LIST[PieceIndex(pce,PIECE_NUM[pce])]=sq
+	PIECE_NUM[pce]++
+}
+function MovePiece(from,to){  
+	
+	let pce=BOARD[from]
+	BOARD[from]=0
+	BOARD[to]=pce
+
+	
+	for(let i=0,L=PIECE_NUM[pce];i<L;++i) {
+		if(PIECE_LIST[PieceIndex(pce,i)]===from){
+			PIECE_LIST[PieceIndex(pce,i)]=to
+			break
+		}
+	}
+}
+function CheckBoard(){
+	for(let i=wP;i<=bK;i++){
+	    for(let j=0;j<PIECE_NUM[i];j++){
+	        
+	        if(BOARD[PIECE_LIST[PieceIndex(i,j)]]!==i)console.log('error')
+	        return
+	    }
+	}
+}
+function MakeMove(move){
+	
+	let from=FROM(move),
+	    to=TO(move)
+	
+	HISTORY[gPLY].POS_KEY=POS_KEY
+	
+	if(move&FLAG_EP){
+        if(SIDE)
+            ClearPiece(to+10)
+        else
+            ClearPiece(to-10)
+    }else if(move&FLAG_CAS){
+        switch(to){
+            case 93:
+                MovePiece(91,94)
+			break
+            case 23:
+                MovePiece(21,24)
+			break
+            case 97:
+                MovePiece(98,96)
+			break
+            case 27:
+                MovePiece(28,26)
+			break
+        }
+    }	
+	
+	
+	HISTORY[gPLY].move=move
+    HISTORY[gPLY].EN_PAS=EN_PAS
+    HISTORY[gPLY].CASTLING=CASTLING
+
+    CASTLING&=CastlePerm[from]
+    CASTLING&=CastlePerm[to]
+    EN_PAS=9
+
+	
+	if(FLAG_CAP&move){
+        ClearPiece(to)
+    }
+	
+	PLY++
+	gPLY++
+	
+	if(IsPawn[BOARD[from]]){
+        if(move&FLAG_PS){
+            EN_PAS=File[from]
+        }
+    }
+	
+	MovePiece(from,to)
+	
+	let prPce=PROM(move)
+    if(prPce){       
+        ClearPiece(to)
+        AddPiece(to,prPce)
+    }
+	
+	SIDE^=1
+	
+	POS_KEY=GeneratePosKey()
+	
+	if(SqAttacked(PIECE_LIST[PieceIndex(Kings[SIDE],0)],SIDE)){
+        TakeMove()
+        return 0
+    }
+	
+	return 1
+}
+function TakeMove(){
+	
+	PLY--
+	gPLY--
+	
+    let move=HISTORY[gPLY].move
+        from=FROM(move),
+        to=TO(move)
+
+
+    CASTLING=HISTORY[gPLY].CASTLING
+    EN_PAS=HISTORY[gPLY].EN_PAS
+    POS_KEY=HISTORY[gPLY].POS_KEY
+
+
+    SIDE^=1
+	
+	if(FLAG_EP&move){
+        if(SIDE)
+            AddPiece(to+10,bP)
+        else
+            AddPiece(to-10,wP)
+    }else if(FLAG_CAS&move){
+        switch(to){
+            case 93:
+                MovePiece(94,91)
+			break
+            case 23:
+                MovePiece(24,21)
+			break
+            case 97:
+                MovePiece(96,98)
+			break
+            case 27:
+                MovePiece(26,28)
+			break
+        }
+    }
+	
+	MovePiece(to,from)
+	
+	let cap=CAP(move)
+    if(cap)      
+        AddPiece(to,cap)
+	
+	let prPce=PROM(move)
+	if(prPce){        
+        ClearPiece(from)
+        AddPiece(from,IsWhite[prPce]?wP:bP)
+    }
+}
+function GeneratePosKey(){
+
+	let key=0
+	
+	for(let i=0;i<120;++i){
+		let piece=BOARD[i]
+		if(piece&&piece!==OFF)
+			key^=PieceKeys[piece*120+i]
+	}
+	
+	if(SIDE)key^=SideKey
+	
+	if(EN_PAS!==9)key^=PieceKeys[EN_PAS]
+	
+	key^=CastleKeys[CASTLING]
+	
+	return key
+}
+
+function ClearForSearch(){
+    PLY=0
+    
+    for(let i=0;i<14*120;++i)		
+		SEARCH_HISTORY[i]=0
+	
+    for(let i=0;i<3*MAX_DEPTH;++i)		
+		SEARCH_KILLERS[i]=0
+	
+}
+function Evaluate(){
+    
+    let tt=TT[POS_KEY]
+    if(tt&&tt.evaluation!==undefined)
+        return tt.evaluation
+    else
+        tt={}
+    
+    let e=0,pst1=0,pst2=0,material=MATERIAL[1]-MATERIAL[0],gamePhase=70
+    
+    for(let i=0;i<10;++i){
+        PawnRanksWhite[i]=9
+        PawnRanksBlack[i]=0
+    }
+    PawnColorsWhite[0]=0
+    PawnColorsWhite[1]=0
+    PawnColorsBlack[0]=0
+    PawnColorsBlack[1]=0
+    
+    for(let i=0,L=PIECE_NUM[wP];i<L;++i){
+        let sq=PIECE_LIST[PieceIndex(wP,i)]
+        if(Rank[sq]<PawnRanksWhite[File[sq]]){
+            if(PawnRanksWhite[File[sq]]!==9)e+=DOUBLED_PAWNS
+            PawnRanksWhite[File[sq]]=Rank[sq]
+        }
+        sq=Sq120_64[sq]
+        PawnColorsWhite[(sq+(sq>>3))&1]++
+    }
+    for(let i=0,L=PIECE_NUM[bP];i<L;++i){
+        let sq=PIECE_LIST[PieceIndex(bP,i)]
+        if(Rank[sq]>PawnRanksBlack[File[sq]]){
+            if(PawnRanksBlack[File[sq]]!==0)e-=DOUBLED_PAWNS
+            PawnRanksBlack[File[sq]]=Rank[sq]
+        }
+        sq=Sq120_64[sq]
+        PawnColorsBlack[(sq+(sq>>3))&1]++
+    }
+    let avg=(PawnColorsWhite[0]+PawnColorsWhite[1])*0.5
+    PawnColorsWhite[0]-=avg
+    PawnColorsWhite[1]-=avg
+    avg=(PawnColorsBlack[0]+PawnColorsBlack[1])*0.5
+    PawnColorsBlack[0]-=avg
+    PawnColorsBlack[1]-=avg
+    
+    for(let i=0,L=PIECE_NUM[wP];i<L;++i){
+        let sq=PIECE_LIST[PieceIndex(wP,i)],file=File[sq],rank=Rank[sq]
+        if(PawnRanksWhite[file-1]===9&&PawnRanksWhite[file+1]===9)
+            e+=ISOLATED_PAWN
+        if(PawnRanksBlack[file]<=rank&&PawnRanksBlack[file-1]<=rank&&PawnRanksBlack[file+1]<=rank)
+            e+=PASSED_PAWN_ON_RANK[rank]
+            
+        if((sq===84||sq===85)&&BOARD[sq-10]&&!IsPawn[BOARD[sq-10]])
+		    pst1+=SELF_BLOCKED_CENTER_PAWN
+		    
+        sq=Mirror64[Sq120_64[sq]]
+		pst1+=PST_EARLY[0][sq]
+		pst2+=PST_END[0][sq]
+		
+    }
+    for(let i=0,L=PIECE_NUM[bP];i<L;++i){
+        let sq=PIECE_LIST[PieceIndex(bP,i)],file=File[sq],rank=Rank[sq]
+        if(PawnRanksBlack[file-1]===0&&PawnRanksBlack[file+1]===0)
+            e-=ISOLATED_PAWN
+        if(PawnRanksWhite[file]>=rank&&PawnRanksWhite[file-1]>=rank&&PawnRanksWhite[file+1]>=rank)
+            e-=PASSED_PAWN_ON_RANK[9-rank]
+            
+        if((sq===34||sq===35)&&BOARD[sq+10]&&!IsPawn[BOARD[sq+10]])
+		    pst1-=SELF_BLOCKED_CENTER_PAWN
+		    
+        sq=Sq120_64[sq]
+		pst1-=PST_EARLY[0][sq]
+		pst2-=PST_END[0][sq]
+    }
+    for(let i=0,L=PIECE_NUM[wN];i<L;++i){
+        let sq=Mirror64[Sq120_64[PIECE_LIST[PieceIndex(wN,i)]]]
+		pst1+=PST_EARLY[1][sq]
+		pst2+=PST_END[1][sq]
+		gamePhase-=3
+    }
+    for(let i=0,L=PIECE_NUM[bN];i<L;++i){
+        let sq=Sq120_64[PIECE_LIST[PieceIndex(bN,i)]]
+		pst1-=PST_EARLY[1][sq]
+		pst2-=PST_END[1][sq]
+		gamePhase-=3
+    }
+    for(let i=0,L=PIECE_NUM[wB];i<L;++i){
+        let sq=Sq120_64[PIECE_LIST[PieceIndex(wB,i)]]
+        pst1+=PawnColorsWhite[(sq+(sq>>3))&1]*BISHOP_VALUE_PER_BLOCKING_PAWN
+        sq=Mirror64[sq]
+		pst1+=PST_EARLY[2][sq]
+		pst2+=PST_END[2][sq]
+		gamePhase-=3
+        
+    }
+    for(let i=0,L=PIECE_NUM[bB];i<L;++i){
+        let sq=Sq120_64[PIECE_LIST[PieceIndex(bB,i)]]
+		pst1-=PST_EARLY[2][sq]
+		pst2-=PST_END[2][sq]
+		gamePhase-=3
+		pst1-=PawnColorsBlack[(sq+(sq>>3))&1]*BISHOP_VALUE_PER_BLOCKING_PAWN
+    }
+    for(let i=0,L=PIECE_NUM[wQ];i<L;++i){
+        let sq=PIECE_LIST[PieceIndex(wQ,i)],file=File[sq]
+        if(PawnRanksWhite[file]===9){
+            if(PawnRanksBlack[file]===0)
+                pst1+=OPEN_FILE_QUEEN
+            else
+                pst1+=SEMI_OPEN_FILE_QUEEN
+        }
+        sq=Mirror64[Sq120_64[sq]]
+		pst1+=PST_EARLY[4][sq]
+		pst2+=PST_END[4][sq]
+		gamePhase-=15
+    }
+    for(let i=0,L=PIECE_NUM[bQ];i<L;++i){
+        let sq=PIECE_LIST[PieceIndex(bQ,i)],file=File[sq]
+        if(PawnRanksBlack[file]===0){
+            if(PawnRanksWhite[file]===9)
+                pst1-=OPEN_FILE_QUEEN
+            else
+                pst1-=SEMI_OPEN_FILE_QUEEN
+        }
+        sq=Sq120_64[sq]
+		pst1-=PST_EARLY[4][sq]
+		pst2-=PST_END[4][sq]
+		gamePhase-=15
+    }
+    let sq=Mirror64[Sq120_64[wKsq=PIECE_LIST[PieceIndex(wK,0)]]]
+	pst1+=PST_EARLY[5][sq]
+	pst2+=PST_END[5][sq]
+
+    sq=Sq120_64[bKsq=PIECE_LIST[PieceIndex(bK,0)]]
+	pst1-=PST_EARLY[5][sq]
+	pst2-=PST_END[5][sq]
+    
+    let wKFile=File[wKsq],bKFile=File[bKsq]
+    
+    for(let i=0,L=PIECE_NUM[wR];i<L;++i){
+        let sq=PIECE_LIST[PieceIndex(wR,i)],file=File[sq]
+        if(PawnRanksWhite[file]===9){
+            if(PawnRanksBlack[file]===0)
+                pst1+=OPEN_FILE_ROOK
+            else
+                pst1+=SEMI_OPEN_FILE_ROOK
+        }
+        if(wKFile<file&&wKFile>4)pst1+=KING_TRAPS_ROOK*(CASTLING&4?0.5:1)
+        if(wKFile>file&&wKFile<5)pst1+=KING_TRAPS_ROOK*(CASTLING&8?0.5:1)
+        sq=Mirror64[Sq120_64[sq]]
+		pst1+=PST_EARLY[3][sq]
+		pst2+=PST_END[3][sq]
+		gamePhase-=4
+    }
+    for(let i=0,L=PIECE_NUM[bR];i<L;++i){
+        let sq=PIECE_LIST[PieceIndex(bR,i)],file=File[sq]
+        if(PawnRanksBlack[file]===0){
+            if(PawnRanksWhite[file]===9)
+                pst1-=OPEN_FILE_ROOK
+            else
+                pst1-=SEMI_OPEN_FILE_ROOK
+        }
+        if(bKFile<file&&bKFile>4)pst1-=KING_TRAPS_ROOK*(CASTLING&1?0.5:1)
+        if(bKFile>file&&bKFile<5)pst1-=KING_TRAPS_ROOK*(CASTLING&2?0.5:1)
+        sq=Sq120_64[sq]
+		pst1-=PST_EARLY[3][sq]
+		pst2-=PST_END[3][sq]
+		gamePhase-=4
+    }
+    
+    if(PIECE_NUM[wB]>1)e+=BISHOP_PAIR
+    if(PIECE_NUM[bB]>1)e-=BISHOP_PAIR
+    
+    if(CASTLING&8)pst1+=CAN_CASTLE_A_DIR
+    if(CASTLING&4)pst1+=CAN_CASTLE_A_DIR
+    if(CASTLING&2)pst1-=CAN_CASTLE_A_DIR
+    if(CASTLING&1)pst1-=CAN_CASTLE_A_DIR
+    
+    let PAWN_SHIELD=50
+    
+    if(!(CASTLING&12)){
+        if(BOARD[wKsq-10]===wP)pst1+=PAWN_SHIELD
+        if(BOARD[wKsq-11]===wP)pst1+=PAWN_SHIELD*0.75
+        if(BOARD[wKsq-9]===wP)pst1+=PAWN_SHIELD*0.75
+        if(BOARD[wKsq-20]===wP)pst1+=PAWN_SHIELD*0.75
+        if(BOARD[wKsq-21]===wP)pst1+=PAWN_SHIELD*0.5
+        if(BOARD[wKsq-19]===wP)pst1+=PAWN_SHIELD*0.5
+    }
+    
+    if(!(CASTLING&3)){
+        if(BOARD[bKsq+10]===bP)pst1-=PAWN_SHIELD
+        if(BOARD[bKsq+11]===bP)pst1-=PAWN_SHIELD*0.75
+        if(BOARD[bKsq+9]===bP)pst1-=PAWN_SHIELD*0.75
+        if(BOARD[bKsq+20]===bP)pst1-=PAWN_SHIELD*0.75
+        if(BOARD[bKsq+21]===bP)pst1-=PAWN_SHIELD*0.5
+        if(BOARD[bKsq+19]===bP)pst1-=PAWN_SHIELD*0.5
+    }
+    
+    pst=(pst2-pst1)*(gamePhase/70)+pst1
+    
+    
+    return tt.evaluation=(e+material+pst)*(SIDE?1:-1)
+}
+function PickMove(moveNum){
+
+	let bestScore=0,
+	    bestNum=moveNum
+	
+	for(let i=moveNum;i<MOVE_LIST_START[PLY+1];++i){
+		if(MOVE_SCORES[i]>bestScore){
+			bestScore=MOVE_SCORES[i]
+			bestNum=i
+		}
+	}
+	
+	let temp=MOVE_LIST[moveNum]
+	MOVE_LIST[moveNum]=MOVE_LIST[bestNum]
+	MOVE_LIST[bestNum]=temp
+	
+	temp=MOVE_SCORES[moveNum]
+	MOVE_SCORES[moveNum]=MOVE_SCORES[bestNum]
+	MOVE_SCORES[bestNum]=temp
+}
+function FindBestMove(){
+    
+    ClearForSearch()
+    
+    let timeLimit=performance.now()+time_alloted_ms,
+        abort=0,
+        currentDepth=1,
+        currentFinished=0,
+        
+        
+        stats={
+            nodes:0,leaves:0,qnodes:0,ab:0,fuls:0,nulls:0,fh:0,fhf:0,bf:0,bfn:0,time:performance.now()
+        }
+    
+    let Quiescence=(alpha,beta)=>{stats.qnodes++
+        
+        if(((stats.nodes+stats.qnodes)&4095)&&performance.now()>timeLimit&&currentDepth>1){
+            
+            abort=1
+            currentFinished=0
+            return 0
+        }
+        
+        if(PLY>=MAX_DEPTH)return Evaluate()
+        
+        let score=Evaluate()
+        
+        if(score>=beta)return beta
+        if(score>alpha)alpha=score
+        
+        GenerateCaptures()
+        
+        let legals=0,
+            bestMove=0
+        score=-INF
+        
+        for(let i=MOVE_LIST_START[PLY],L=MOVE_LIST_START[PLY+1];i<L;++i){
+            PickMove(i)
+            
+            let move=MOVE_LIST[i]
+            
+            // if(SEE_sign(move)<=0)continue
+            
+            if(!MakeMove(move))continue
+            
+            legals++
+            score=-Quiescence(-beta,-alpha)
+            TakeMove()
+            
+            if(score>alpha){
+                if(score>=beta){
+                    if(legals===1)stats.fhf++
+                    stats.fh++
+                    
+                    return beta
+                }
+                alpha=score
+                bestMove=move
+            }
+        }
+        
+        
+        if(bestMove){
+            TT[POS_KEY]={bestMove:bestMove}
+        }
+        
+        return alpha
+    },
+    Search=(depth,alpha,beta,nullMovePruning)=>{stats.nodes++
+        
+        if(((stats.nodes+stats.qnodes)&4095)&&performance.now()>timeLimit&&currentDepth>1){
+            
+            abort=1
+            currentFinished=0
+            return 0
+        }
+        
+        if(depth<=0){stats.leaves++
+            return Quiescence(alpha,beta)
+        }
+        
+        if(PLY>=MAX_DEPTH)return Evaluate()
+        
+        GenerateMoves()
+        
+        let score=-INF,
+            legals=0,
+            bestMove=0,
+            inCheck=SqAttacked(PIECE_LIST[PieceIndex(Kings[1-SIDE],0)],1-SIDE)
+        
+        if(inCheck)depth++
+        
+    //     if(nullMovePruning&&!inCheck&&PLY&&depth>=4){
+    		
+    // 		let tempEP=EN_PAS
+    // 		SIDE^=1
+    //     	EN_PAS=9
+    		
+    // 		let nullE=-Search(depth-4,-beta,-beta+100,0)
+    		
+    // 		SIDE^=1
+    // 		EN_PAS=tempEP
+    		
+    // 		if(nullE>=beta)
+    // 		  return (stats.nulls++,nullE)
+    // 	}
+        
+        if(!inCheck){
+            
+            let stat=Evaluate()-(100+depth*300)
+            
+            if(stat>=beta)return (stats.fuls++,stat)
+        }
+        
+        
+        stats.bfn++
+        for(let i=MOVE_LIST_START[PLY],L=MOVE_LIST_START[PLY+1];i<L;++i){stats.bf++
+            PickMove(i)
+            
+            let move=MOVE_LIST[i]
+            
+            if(!MakeMove(move))continue
+            
+            legals++
+            score=-Search(depth-(legals>10?2:1),-beta,-alpha,nullMovePruning)
+            TakeMove()
+            
+            if(score>alpha){
+                if(score>=beta){
+                    if(legals===1)stats.fhf++
+                    stats.fh++
+                    
+                    if(!(FLAG_CAP&move)){
+                        SEARCH_KILLERS[MAX_DEPTH+PLY]=SEARCH_KILLERS[PLY]
+                        SEARCH_KILLERS[PLY]=move
+                    }
+                    
+                    return beta
+                }
+                alpha=score
+                bestMove=move
+                
+                if(!(FLAG_CAP&move))
+                    SEARCH_HISTORY[BOARD[FROM(move)]*120+TO(move)]+=depth
+            }
+        }
+        
+        if(!legals){
+            if(inCheck)
+                return -INF+PLY
+            else
+                return 0
+        }
+        
+        if(bestMove){
+            TT[POS_KEY]={bestMove:bestMove}
+        }
+        
+        return alpha
+    }
+    
+    if(parent.raf)clearTimeout(parent.raf)
+    
+    let lastScore,transpositionEntries={},pv
+    
+    function IterativeDeepening(){
+        
+        currentFinished=1
+        
+        let score=Search(currentDepth,-INF,INF,1)
+        
+        if(currentFinished){
+            lastScore=score
+            GenerateBoardMesh()
+            pv=[]
+            PV_LINE=[]
+            let d=100
+            while(TT[POS_KEY]&&d--){
+                let m=TT[POS_KEY].bestMove
+                PV_LINE.push(m)
+                pv.push(PrintMove(m))
+                MakeMove(TT[POS_KEY].bestMove)
+            }
+            for(let i=0;i<pv.length;i++)TakeMove()
+            
+            if(!play_against_the_bot)
+                SetArrow(PV_LINE[0])
+        }
+        
+        if(abort||currentDepth>=MAX_DEPTH){
+            
+            let pvStr=''
+            
+            pv.map((x)=>pvStr+=x+',')
+            pvStr=pvStr.substr(0,pvStr.length-1)
+            
+            SetEvalBar(lastScore)
+            
+            if(!play_against_the_bot)
+                console.log('depth: '+(currentDepth-1)+', PV: '+pvStr+', time: '+(performance.now()-stats.time).toFixed(1)+'ms, eval: '+(lastScore*0.01*(SIDE?1:-1)).toFixed(2)+' '+((SIDE?1:-1)*Evaluate()*0.01).toFixed(2)+'stc, nodes: '+stats.nodes+' '+stats.qnodes+'q, leaves: '+stats.leaves+', ordering: '+(stats.bf/stats.bfn).toFixed(2)+'b '+(100*stats.fhf/stats.fh).toFixed(1)+'%, fuls: '+stats.fuls+'')
+            
+            if(play_against_the_bot){
+                MakeMove(PV_LINE[0])
+                let from=Sq120_64[FROM(PV_LINE[0])],to=Sq120_64[TO(PV_LINE[0])]
+                console.log('move '+'abcdefgh'[from&7]+(8-(from>>3))+'abcdefgh'[to&7]+(8-(to>>3)))
+                RunTurn()
+            }else{
+                
+                RunUserMoves()
+            }
+            return
+        }
+        
+        currentDepth++
+        parent.raf=setTimeout(IterativeDeepening,0)
+    }
+    
+    IterativeDeepening()
+}
+
+function RunTurn(){
+    
+    if(!play_against_the_bot){
+        
+        GenerateBoardMesh()
+        FindBestMove()
+        return
+    }
+    
+    if(SIDE^flip_board){
+        
+        GenerateBoardMesh()
+        RunUserMoves()
+        
+    }else{
+        
+        FindBestMove()
+        RunUserMoves()
+    }
+}
+
+if(play_against_the_bot)evalBar.style.display='none'
+
+
+promType.onchange=()=>{
+    
+    USER_PROMOTION_TYPE={Queen:IsQueen,Rook:IsRook,Bishop:IsBishop,Knight:IsKnight}[promType.value]
+}
+
+ParseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+
+RunTurn()
+
+
+})()</script>
+
+<script type>
+
+function init(){
+
+printer.style.height='0px'
+
+console.log=console.error=console.warn=function(_a){
+    
+    printer.style.height='110px'
+    printer.value+=_a+'\n'
+}
+let app=document.getElementById('source').text
+
+if(app.indexOf('@')>-1){
+    document.body.style.display='none'
+    return
+}
+
+try{Object.constructor(app)()}catch(e){console.log(e+'\n')}
+
+}
+
+init()
+</script>
+
+    </body>
+</html>
