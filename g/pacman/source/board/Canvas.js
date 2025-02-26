@@ -1,7 +1,7 @@
-import Board        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
 
 // Utils
-import Utils        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/utils%20(DO%20NOT%20RUN)/Utils.js";
+import Utils        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/utils%20(DO%20NOT%20RUN)/Utils.js";
 
 
 
