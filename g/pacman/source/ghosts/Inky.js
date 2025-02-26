@@ -1,8 +1,8 @@
-import Board        from "../board/Board.js";
-import Canvas       from "../board/Canvas.js";
-import Blob         from "../Blob.js";
-import Blinky       from "./Blinky.js";
-import Ghost        from "./Ghost.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Canvas       from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Canvas.js";
+import Blob         from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Blob.js";
+import Blinky       from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Blinky.js";
+import Ghost        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/ghosts/Ghost.js";
 
 
 
