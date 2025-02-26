@@ -1,5 +1,5 @@
-import Board        from "./board/Board.js";
-import Canvas       from "./board/Canvas.js";
+import Board        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Canvas       from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Canvas.js";
 
 
 
