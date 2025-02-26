@@ -1,7 +1,7 @@
-import BoardCanvas  from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/BoardCanvas.js";
-import GameCanvas   from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/GameCanvas.js";
-import Canvas       from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Canvas.js";
-import Level        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/Level.js";
+import BoardCanvas  from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/BoardCanvas.js";
+import GameCanvas   from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/GameCanvas.js";
+import Canvas       from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Canvas.js";
+import Level        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Level.js";
 
 // Utils
 import Utils        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/utils%20(DO%20NOT%20RUN)/Utils.js";
