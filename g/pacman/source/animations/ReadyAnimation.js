@@ -1,5 +1,5 @@
-import Animation    from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/animations/Animation.js";
-import Board        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
+import Animation    from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/animations/Animation.js";
+import Board        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/board/Board.js";
 
 
 
