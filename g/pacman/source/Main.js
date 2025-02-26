@@ -10,9 +10,9 @@ import HighScores   from "raw.githubusercontent.com/BuBuStuff/Application-Host/r
 import Score        from "raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/source/score/Score.js";
 
 // Utils
-import KeyCode      from "../../utils/KeyCode.js";
-import Sounds       from "../../utils/Sounds.js";
-import Utils        from "../../utils/Utils.js";
+import KeyCode      from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/utils%20(DO%20NOT%20RUN)/KeyCode.js";
+import Sounds       from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/utils%20(DO%20NOT%20RUN)/Sounds.js";
+import Utils        from "https://raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/utils%20(DO%20NOT%20RUN)/Utils.js";
 
 // Variables
 let board      = null;
