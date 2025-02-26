@@ -5,7 +5,7 @@
     font-family: "Whimsy TT";
     font-style: normal;
     font-weight: normal;
-    src: local("Whimsy TT"), url("../fonts/whimsytt.ttf") format("truetype");
+    src: local("Whimsy TT"), url("raw.githubusercontent.com/BuBuStuff/Application-Host/refs/heads/main/g/pacman/fonts/whimsytt.ttf") format("truetype");
 }
 
 
