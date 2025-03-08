@@ -1,5 +1,5 @@
 /**
- * A* (A-Star) algorithm for a path finder
+
  */
 
 /**
